@@ -3,16 +3,25 @@
 import { useRef } from "react";
 import { resume } from "@/lib/data";
 
-export default function ResumeModal() {
+// ponytail: the browser's built-in PDF viewer (toolbar, its own scrollbar) runs as
+// sandboxed native UI — no page CSS reaches inside it. #toolbar=0&navpanes=0 is the
+// one thing browsers actually honor, so we strip their chrome instead of styling it.
+// Full themed scrollbar/toolbar would mean swapping to a pdf.js canvas renderer.
+const VIEWER_SRC = `${resume.pdfUrl}#toolbar=0&navpanes=0`;
+
+export default function ResumeModal({
+  triggerClassName = "rounded-full border border-border px-5 py-2.5 text-sm text-foreground transition-colors hover:border-accent/40",
+  label = "Resume",
+}: {
+  triggerClassName?: string;
+  label?: string;
+}) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   return (
     <>
-      <button
-        onClick={() => dialogRef.current?.showModal()}
-        className="rounded-full border border-border px-5 py-2.5 text-sm text-foreground transition-colors hover:border-accent/40"
-      >
-        Resume
+      <button onClick={() => dialogRef.current?.showModal()} className={triggerClassName}>
+        {label}
       </button>
 
       <dialog
@@ -20,7 +29,7 @@ export default function ResumeModal() {
         onClick={(e) => {
           if (e.target === dialogRef.current) dialogRef.current?.close();
         }}
-        className="h-[80vh] w-[80vw] max-w-4xl rounded-xl border border-border bg-card p-0 text-foreground backdrop:bg-black/70 backdrop:backdrop-blur-sm"
+        className="fixed bottom-0 left-1/2 m-0 h-[90vh] w-[80vw] -translate-x-1/2 rounded-t-xl border border-b-0 border-border bg-card p-0 text-foreground backdrop:bg-black/70 backdrop:backdrop-blur-sm"
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -52,7 +61,7 @@ export default function ResumeModal() {
               </button>
             </div>
           </div>
-          <iframe src={resume.pdfUrl} title="Resume preview" className="w-full flex-1" />
+          <iframe src={VIEWER_SRC} title="Resume preview" className="w-full flex-1" />
         </div>
       </dialog>
     </>

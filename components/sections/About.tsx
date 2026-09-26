@@ -19,19 +19,15 @@ export default function About() {
       </div>
 
       <div className="mt-8 flex flex-wrap gap-4 text-sm">
-        <a
-          href="#experience"
-          className="rounded-full bg-accent px-5 py-2.5 font-medium text-black transition-opacity hover:opacity-90"
-        >
-          View Experience
-        </a>
+        <ResumeModal
+          triggerClassName="rounded-full bg-accent px-5 py-2.5 font-medium text-black transition-opacity hover:opacity-90"
+        />
         <a
           href={`mailto:${profile.email}`}
           className="rounded-full border border-border px-5 py-2.5 text-foreground transition-colors hover:border-accent/40"
         >
           Email
         </a>
-        <ResumeModal />
         {profile.links.map((l) => (
           <a
             key={l.label}
