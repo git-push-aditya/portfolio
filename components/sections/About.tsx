@@ -1,4 +1,5 @@
 import { profile, about } from "@/lib/data";
+import ResumeModal from "@/components/ResumeModal";
 
 export default function About() {
   return (
@@ -30,6 +31,7 @@ export default function About() {
         >
           Email
         </a>
+        <ResumeModal />
         {profile.links.map((l) => (
           <a
             key={l.label}

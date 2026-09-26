@@ -19,6 +19,12 @@ export const profile = {
   ),
 };
 
+export const resume = {
+  fileName: "Aditya-Dubey.pdf",
+  pdfUrl: "/Aditya-Dubey.pdf", // served from public/, guarantees the exact filename on download
+  driveUrl: process.env.NEXT_PUBLIC_RESUME_DRIVE_URL,
+};
+
 export const about = {
   summary:
     "Final-year B.Tech Computer Science student (AI & DS) doing the work of a backend/platform engineer. I like building the infrastructure other features sit on — data access layers, provisioning tools, and authorization — and I treat model output as untrusted input rather than a trusted collaborator.",
