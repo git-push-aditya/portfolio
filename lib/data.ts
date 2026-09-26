@@ -98,6 +98,19 @@ export const projects: Project[] = [
       ["GitHub", process.env.NEXT_PUBLIC_SECOND_BRAIN_GITHUB_URL],
     ),
   },
+  {
+    slug: "commit-personality",
+    title: "Commit Personality",
+    subtitle: "Meme-Driven Developer Personality Test",
+    stack: ["Next.js", "TailwindCSS", "GSAP", "GitHub REST API", "Cohere"],
+    points: [
+      "Pulls a user's GitHub commit history through the GitHub REST API and uses Cohere to generate a context-aware profile of their coding habits.",
+    ],
+    links: links(
+      ["Live", process.env.NEXT_PUBLIC_COMMIT_PERSONALITY_LIVE_URL],
+      ["GitHub", process.env.NEXT_PUBLIC_COMMIT_PERSONALITY_GITHUB_URL],
+    ),
+  },
 ];
 
 export type Achievement = {

@@ -1,4 +1,5 @@
 import { profile } from "@/lib/data";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const NAV = [
   { href: "#about", label: "About" },
@@ -15,12 +16,13 @@ export default function Nav() {
         <a href="#about" className="font-mono text-sm text-foreground">
           {profile.name}
         </a>
-        <div className="flex gap-6 overflow-x-auto text-sm text-muted">
+        <div className="flex items-center gap-6 overflow-x-auto text-sm text-muted">
           {NAV.map((n) => (
             <a key={n.href} href={n.href} className="whitespace-nowrap hover:text-foreground">
               {n.label}
             </a>
           ))}
+          <ThemeToggle />
         </div>
       </nav>
     </header>
