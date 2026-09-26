@@ -29,7 +29,7 @@ export default function ResumeModal({
         onClick={(e) => {
           if (e.target === dialogRef.current) dialogRef.current?.close();
         }}
-        className="fixed bottom-0 left-1/2 m-0 h-[90vh] w-[80vw] -translate-x-1/2 rounded-t-xl border border-b-0 border-border bg-card p-0 text-foreground backdrop:bg-black/70 backdrop:backdrop-blur-sm"
+        className="resume-dialog fixed top-auto bottom-0 left-1/2 h-[90vh] w-[80vw] rounded-t-xl border border-b-0 border-border bg-card p-0 text-foreground"
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">

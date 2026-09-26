@@ -29,3 +29,50 @@ body {
   background: var(--accent);
   color: #0a0a0b;
 }
+
+/* Slide up from the bottom on open, slide back down on close — native <dialog>
+   entry/exit animation, no JS. Firefox ignores @starting-style and just shows/hides
+   instantly, which is an acceptable fallback. */
+.resume-dialog {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease,
+    overlay 0.25s ease allow-discrete,
+    display 0.25s ease allow-discrete;
+}
+
+.resume-dialog:not([open]) {
+  transform: translate(-50%, 100%);
+  opacity: 0;
+}
+
+@starting-style {
+  .resume-dialog[open] {
+    transform: translate(-50%, 100%);
+    opacity: 0;
+  }
+}
+
+.resume-dialog::backdrop {
+  background-color: rgb(0 0 0 / 0);
+  backdrop-filter: blur(0px);
+  transition:
+    background-color 0.25s ease,
+    backdrop-filter 0.25s ease,
+    overlay 0.25s ease allow-discrete,
+    display 0.25s ease allow-discrete;
+}
+
+.resume-dialog[open]::backdrop {
+  background-color: rgb(0 0 0 / 0.7);
+  backdrop-filter: blur(4px);
+}
+
+@starting-style {
+  .resume-dialog[open]::backdrop {
+    background-color: rgb(0 0 0 / 0);
+    backdrop-filter: blur(0px);
+  }
+}
