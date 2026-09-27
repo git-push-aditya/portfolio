@@ -20,7 +20,7 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="Toggle theme"
-      className="cursor-pointer text-accent"
+      className="cursor-target cursor-pointer text-accent"
     >
       {theme === "light" ? (
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">

@@ -1,17 +1,28 @@
 import { experience } from "@/lib/data";
+import StrokeText from "@/components/StrokeText";
 
 export default function Experience() {
   return (
     <section id="experience" className="scroll-mt-20 border-t border-border py-20">
-      <h2 className="text-xl font-semibold text-foreground">Experience</h2>
+      <div className="w-fit">
+        <StrokeText
+          text="Experience"
+          strokeColor="var(--accent)"
+          fillColor="var(--foreground)"
+          fontSize={96}
+          fontWeight={600}
+          letterSpacing={0}
+          trigger="scroll"
+        />
+      </div>
       <div className="mt-8 space-y-10">
         {experience.map((e) => (
           <div key={e.org}>
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h3 className="font-medium text-foreground">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="min-w-0 font-medium text-foreground">
                 {e.role} · {e.org}
               </h3>
-              <span className="font-mono text-xs text-muted">{e.dates}</span>
+              <span className="shrink-0 whitespace-nowrap font-mono text-xs text-muted">{e.dates}</span>
             </div>
             <p className="text-sm text-muted">
               {e.sub} — {e.location}
@@ -24,6 +35,18 @@ export default function Experience() {
                 </li>
               ))}
             </ul>
+            {e.stack.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {e.stack.map((tech) => (
+                  <span
+                    key={tech}
+                    className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-muted"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>

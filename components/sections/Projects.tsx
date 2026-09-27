@@ -1,9 +1,20 @@
 import { projects } from "@/lib/data";
+import StrokeText from "@/components/StrokeText";
 
 export default function Projects() {
   return (
-    <section id="projects" className="scroll-mt-20 border-t border-border py-20">
-      <h2 className="text-xl font-semibold text-foreground">Projects</h2>
+    <section id="projects" className="scroll-mt-20 py-20">
+      <div className="w-fit">
+        <StrokeText
+          text="Projects"
+          strokeColor="var(--accent)"
+          fillColor="var(--foreground)"
+          fontSize={96}
+          fontWeight={600}
+          letterSpacing={0}
+          trigger="scroll"
+        />
+      </div>
       <div className="mt-8 grid gap-6">
         {projects.map((p) => (
           <article key={p.slug} className="rounded-xl border border-border bg-card p-6">
@@ -12,7 +23,13 @@ export default function Projects() {
               {p.links.length > 0 && (
                 <div className="flex gap-3 text-sm">
                   {p.links.map((l) => (
-                    <a key={l.label} href={l.href} className="text-accent hover:underline">
+                    <a
+                      key={l.label}
+                      href={l.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cursor-target text-accent hover:underline"
+                    >
                       {l.label}
                     </a>
                   ))}

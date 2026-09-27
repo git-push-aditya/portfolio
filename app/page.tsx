@@ -18,12 +18,12 @@ export default function Home() {
           Most bugs I've shipped were trust boundary problems, not logic errors. I'd rather constrain what a system
           can do than trust it to behave.
         </ScrollReveal>
-        <Projects />
+        <Achievements />
         <ScrollReveal className="py-12">
           I don't think LLMs replace backend engineers, they just make the schema and the guardrails the actual
           product. Everything else is plumbing.
         </ScrollReveal>
-        <Achievements />
+        <Projects />
         <ScrollReveal className="py-12">
           I care more about a system I can roll back than one I got right the first time. Rollback is the feature
           that lets me move fast.
@@ -38,7 +38,7 @@ export default function Home() {
           {profile.links.map((l) => (
             <span key={l.label}>
               <span className="mx-2">·</span>
-              <a href={l.href} className="hover:text-foreground">
+              <a href={l.href} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">
                 {l.label}
               </a>
             </span>
