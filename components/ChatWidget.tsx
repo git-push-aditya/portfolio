@@ -64,11 +64,23 @@ export default function ChatWidget() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [floating, setFloating] = useState(false);
+  const [light, setLight] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMessages(loadMessages());
+  }, []);
+
+  // SpecularButton colors are WebGL uniforms, not CSS — they can't read
+  // var(--foreground) at paint time, so mirror the theme attribute here.
+  useEffect(() => {
+    const root = document.documentElement;
+    const sync = () => setLight(root.dataset.theme === "light");
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
   }, []);
 
   // Trigger lives inline in the hero; once its section scrolls mostly out of
@@ -142,9 +154,9 @@ export default function ChatWidget() {
           tint="#ffffff"
           tintOpacity={0}
           blur={0}
-          textColor="#f5f5f5"
-          lineColor="#4ade80"
-          baseColor="#525252"
+          textColor={light ? "#18181b" : "#f5f5f5"}
+          lineColor={light ? "#16a34a" : "#4ade80"}
+          baseColor={light ? "#d4d4d8" : "#525252"}
           intensity={1}
           shineSize={10}
           shineFade={35}
@@ -201,7 +213,7 @@ export default function ChatWidget() {
               e.preventDefault();
               send();
             }}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-background p-1.5 pl-4 m-3"
+            className="flex items-center gap-1.5 rounded-full border border-border bg-card p-1.5 pl-4 m-3"
           >
             <input
               value={input}
