@@ -3,6 +3,7 @@ import ResumeModal from "@/components/ResumeModal";
 import Particles from "@/components/Particles";
 import TargetCursor from "@/components/TargetCursor";
 import ChatWidget from "@/components/ChatWidget";
+import LocationWidget from "@/components/LocationWidget";
 
 export default function About() {
   return (
@@ -15,6 +16,8 @@ export default function About() {
       <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 opacity-60">
         <Particles />
       </div>
+
+      <LocationWidget />
 
       <div className="flex justify-center">
         <ChatWidget />
