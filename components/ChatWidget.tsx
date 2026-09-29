@@ -76,8 +76,9 @@ export default function ChatWidget() {
   // var(--foreground) at paint time, so mirror the theme attribute here.
   useEffect(() => {
     const root = document.documentElement;
+    const theme = root.dataset.theme || localStorage.getItem("theme") || "dark";
+    setLight(theme === "light");
     const sync = () => setLight(root.dataset.theme === "light");
-    sync();
     const observer = new MutationObserver(sync);
     observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
     return () => observer.disconnect();
