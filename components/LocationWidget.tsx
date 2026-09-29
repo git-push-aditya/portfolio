@@ -72,7 +72,7 @@ export default function LocationWidget() {
   }, []);
 
   return (
-    <div className="absolute top-6 left-6 font-mono text-[0.65rem] text-muted opacity-50 hover:opacity-80 transition-opacity tracking-wide">
+    <div className="absolute bottom-6 left-6 font-mono text-[0.65rem] text-muted opacity-50 hover:opacity-80 transition-opacity tracking-wide">
       <div className="flex items-center gap-1.5">
         <span>📍</span>
         <span>Bangalore</span>
