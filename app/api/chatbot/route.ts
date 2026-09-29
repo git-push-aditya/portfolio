@@ -29,12 +29,21 @@ Experience:
 ${experience.map((e) => `- ${e.role} at ${e.org} (${e.dates}): ${e.points.join(" ")}`).join("\n")}
 
 Projects:
-${projects.map((p) => `- ${p.title} — ${p.subtitle}: ${p.points.join(" ")}`).join("\n")}
+${projects
+  .map(
+    (p) =>
+      `- ${p.title} — ${p.subtitle}: ${p.points.join(" ")} Links: ${
+        p.links.length ? p.links.map((l) => `${l.label}: ${l.href}`).join(", ") : "none public"
+      }`,
+  )
+  .join("\n")}
 
 Achievements:
 ${achievements.map((a) => `- ${a.title} (${a.event}, ${a.result}): ${a.points.join(" ")}`).join("\n")}
 
 Skills: ${Object.values(skills).flat().join(", ")}
+
+Contact & profiles: Email: ${profile.email}; ${profile.links.map((l) => `${l.label}: ${l.href}`).join("; ")}
 `.trim();
 }
 
@@ -49,7 +58,8 @@ the resume context below instead of generic claims.
 Only answer questions about ${profile.name}'s work, skills, experience, and background, using the resume
 context below. If asked something unrelated (general trivia, coding help unrelated to the resume, etc.),
 politely redirect to asking about ${profile.name}'s background instead. Never invent facts not present in
-the context.
+the context. Only share URLs that appear verbatim in the context; if a project has no link listed, say it
+isn't public — never guess or construct a URL.
 </scope_and_refusal>
 
 <output_constraints>
