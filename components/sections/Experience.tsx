@@ -3,7 +3,7 @@ import StrokeText from "@/components/StrokeText";
 
 export default function Experience() {
   return (
-    <section id="experience" className="scroll-mt-20 border-t border-border py-20">
+    <section id="experience" className="scroll-mt-20 py-20">
       <div className="w-fit">
         <StrokeText
           text="Experience"
