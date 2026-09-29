@@ -75,7 +75,7 @@ export default function LocationWidget() {
     <div className="absolute bottom-6 left-1/2 w-screen -translate-x-1/2 px-6 text-left font-mono text-[0.65rem] text-muted opacity-50 hover:opacity-80 transition-opacity tracking-wide">
       <div className="flex items-center gap-1.5">
         <span>📍</span>
-        <span>Bangalore</span>
+        <span>Bangalore, India</span>
         <span>{weather}</span>
         <span>{time || "—"}</span>
       </div>
