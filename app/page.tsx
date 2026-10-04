@@ -13,8 +13,8 @@ export default function Home() {
     <>
       <Nav />
       <ConnectToast />
+      <About />
       <main className="mx-auto max-w-3xl px-6">
-        <About />
         <Experience />
         <ScrollReveal className="py-12">
           Most bugs I've shipped were trust boundary problems, not logic errors. I'd rather constrain what a system

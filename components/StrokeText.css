@@ -12,6 +12,7 @@
   display: block;
   width: 100%;
   height: var(--stroke-text-height, 160px);
+  visibility: hidden;
 }
 
 .stroke-text__stroke,

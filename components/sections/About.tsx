@@ -1,58 +1,74 @@
 import { profile } from "@/lib/data";
-import ResumeModal from "@/components/ResumeModal";
+import ChatWidget from "@/components/ChatWidget";
 import Particles from "@/components/Particles";
 import TargetCursor from "@/components/TargetCursor";
-import ChatWidget from "@/components/ChatWidget";
 import LocationWidget from "@/components/LocationWidget";
+import StrokeText from "@/components/StrokeText";
+import WatchingMascot from "@/components/WatchingMascot";
+import HeroDock from "@/components/HeroDock";
 
+// Full-screen hero: the character's face and chest fill the viewport, pushed 10svh below the fold so the hair
+// clears the top. Rendered outside page.tsx's max-w-3xl <main> so it spans the whole screen.
 export default function About() {
   return (
-    <section
-      id="about"
-      className="relative -mx-6 flex min-h-screen scroll-mt-20 flex-col justify-center px-6 text-center"
-    >
+    <section id="about" className="relative h-svh overflow-hidden">
       <TargetCursor hideDefaultCursor />
 
-      <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 opacity-60">
-        <Particles />
+      <div className="pointer-events-none absolute inset-0 opacity-60">
+        <Particles moveParticlesOnHover={false} />
       </div>
 
-      <LocationWidget />
+      <div data-mascot className="pointer-events-none absolute -bottom-[10svh] portrait:-bottom-[20svh] left-1/2 w-[min(92svh,160vw)] -translate-x-1/2">
+        <WatchingMascot
+          frameCount={91}
+          symmetric
+          neutralSrc="/mascot/neutral.webp"
+          head={[0.5, 0.3]}
+          className="aspect-square w-full"
+        />
+      </div>
 
-      <div className="flex justify-center">
+      {/* Name + location, bottom-left beside the body. Landscape: the name is sized to the gap left of the
+          jacket (box left edge 50vw-46svh, jacket starts ~11svh further in). Portrait: the body fills the
+          width, so the block moves to the empty space above the head, below the theme toggle. */}
+      <div className="absolute inset-x-0 top-0 pt-40 landscape:top-auto landscape:bottom-0 landscape:pt-0">
+        <p className="mb-3 pl-8 pr-6 font-mono text-xs font-semibold tracking-widest text-foreground/80">{profile.role}</p>
+        {/* --fs is the font size the plain h1 used. StrokeText sizes its SVG from its fontSize prop in unlayered CSS,
+            so the height override needs ! to win. The negative margins trim the SVG padding: tighter lines and smaller
+            gaps to the role line above and the location below. */}
+        <h1 className="px-6 [--fs:min(18vw,8rem)] landscape:[--fs:min(8rem,calc((50vw-35svh-2rem)/3.2))]">
+          {profile.name.toUpperCase().split(" ").map((w) => (
+            <span key={w} className="block w-fit first:-mt-[calc(var(--fs)*0.33)] not-first:-mt-[calc(var(--fs)*0.45)] last:-mb-[calc(var(--fs)*0.3)] [&_svg]:h-[calc(var(--fs)*1.3)]!">
+              <StrokeText
+                text={w}
+                strokeColor="var(--accent)"
+                fillColor="var(--foreground)"
+                fontSize={96}
+                fontWeight={900}
+                letterSpacing={-2.4}
+                drawDuration={0.6}
+                fillDelay={0.05}
+                stagger={0.03}
+              />
+            </span>
+          ))}
+        </h1>
+        {/* LocationWidget positions itself absolute bottom-6 across the full width; this strip is its anchor.
+            Its opacity-50 leaves muted text too faint on white, so light mode shows it at full opacity. */}
+        <div className="relative h-12 [[data-theme=light]_&>div]:opacity-100">
+          <LocationWidget />
+        </div>
+      </div>
+
+      {/* Resume / Email / profile links as a dock, top centre */}
+      <div className="pointer-events-none absolute inset-x-0 top-20 z-50 flex justify-center sm:top-6 [&>*]:pointer-events-auto">
+        <HeroDock />
+      </div>
+
+      {/* Same spot as the floating button on the main page. Not inside a <section>, so ChatWidget stays in
+          its inline mode and this wrapper does the pinning. */}
+      <div className="fixed bottom-4 right-4 z-30">
         <ChatWidget />
-      </div>
-
-      <p className="mt-6 font-mono text-xs tracking-widest text-muted">{profile.role.toUpperCase()}</p>
-
-      <h1 className="mt-4 text-[15vw] font-black uppercase leading-[0.85] tracking-tight text-foreground sm:text-8xl">
-        {profile.name}
-      </h1>
-
-      <p className="mt-6 text-xs font-medium uppercase tracking-[0.3em] text-muted">
-        I build systems that are
-      </p>
-      <p className="mt-2 font-serif text-3xl italic text-foreground sm:text-5xl">safe by construction.</p>
-
-      <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm">
-        <ResumeModal triggerClassName="cursor-target rounded-full bg-accent px-5 py-2.5 font-medium text-black transition-opacity hover:opacity-90" />
-        <a
-          href={`mailto:${profile.email}`}
-          className="cursor-target rounded-full border border-border px-5 py-2.5 text-foreground transition-colors hover:border-accent/40"
-        >
-          Email
-        </a>
-        {profile.links.map((l) => (
-          <a
-            key={l.label}
-            href={l.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="cursor-target rounded-full border border-border px-5 py-2.5 text-foreground transition-colors hover:border-accent/40"
-          >
-            {l.label}
-          </a>
-        ))}
       </div>
     </section>
   );

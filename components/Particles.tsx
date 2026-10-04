@@ -75,15 +75,15 @@ const hexToRgb = (hex: string): [number, number, number] => {
 };
 
 export default function Particles({
-  particleCount = 80,
-  particleSpread = 10,
+  particleCount = 130,
+  particleSpread = 6,
   speed = 0.1,
   particleColors = ["#4ade80"],
-  moveParticlesOnHover = true,
+  moveParticlesOnHover = false,
   particleHoverFactor = 1,
   alphaParticles = true,
-  particleBaseSize = 150,
-  sizeRandomness = 1,
+  particleBaseSize = 200,
+  sizeRandomness = 2,
   cameraDistance = 20,
   disableRotation = false,
   className = "",
