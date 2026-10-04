@@ -6,11 +6,13 @@ import Projects from "@/components/sections/Projects";
 import Achievements from "@/components/sections/Achievements";
 import Skills from "@/components/sections/Skills";
 import ScrollReveal from "@/components/ScrollReveal";
+import ConnectToast from "@/components/ConnectToast";
 
 export default function Home() {
   return (
     <>
       <Nav />
+      <ConnectToast />
       <main className="mx-auto max-w-3xl px-6">
         <About />
         <Experience />

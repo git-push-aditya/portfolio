@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Lexend } from "next/font/google";
 import Script from "next/script";
 import { profile, about } from "@/lib/data";
+import ScrollLoop from "@/components/ScrollLoop";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="theme-init" strategy="beforeInteractive">
           {`try{var t=localStorage.getItem("theme");if(t==="light"||(!t&&!matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.dataset.theme="light"}catch(e){}`}
         </Script>
+        <ScrollLoop />
         {children}
       </body>
     </html>

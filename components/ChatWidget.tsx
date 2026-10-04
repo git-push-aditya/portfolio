@@ -4,6 +4,8 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import LatticeLoader from "@/components/LatticeLoader";
 import SpecularButton from "@/components/SpecularButton";
 
+const SUGGESTIONS = ["What kind of builder is Aditya?", "What's he building now?", "Walk me through his resume"];
+
 type Message = { role: "user" | "assistant"; content: string };
 
 // ponytail: hand-rolled bold/italic/newline resolver — full markdown needs a
@@ -65,6 +67,7 @@ export default function ChatWidget() {
   const [loading, setLoading] = useState(false);
   const [floating, setFloating] = useState(false);
   const [light, setLight] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
@@ -188,9 +191,29 @@ export default function ChatWidget() {
 
           <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-4 py-3">
             {messages.length === 0 && (
-              <p className="text-sm text-muted">
-                Ask me anything about Aditya&apos;s experience, projects, or skills — I&apos;ll answer from his resume.
-              </p>
+              <div className="flex h-full flex-col justify-between gap-3 pt-4">
+                <p className="text-sm text-muted">
+                  Aditya Dubey is an AI &amp; Backend Engineer. Get to know his work better via a simple chat.
+                </p>
+                <div className="flex flex-col">
+                  {SUGGESTIONS.map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => {
+                        setInput(q);
+                        inputRef.current?.focus();
+                      }}
+                      className="flex cursor-pointer items-center justify-between gap-2 border-b border-border py-2 text-left text-sm text-foreground last:border-b-0 hover:text-accent"
+                    >
+                      {q}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-accent">
+                        <path d="M7 17L17 7M17 7H8M17 7V16" />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
             {messages.map((m, i) => (
               <div
@@ -217,6 +240,7 @@ export default function ChatWidget() {
             className="flex items-center gap-1.5 rounded-full border border-border bg-card p-1.5 pl-4 m-3"
           >
             <input
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask a question…"
