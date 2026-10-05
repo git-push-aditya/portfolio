@@ -151,9 +151,14 @@ export default function StrokeText({
       if (wipe) gsap.set(wipe, { attr: { width: fillEnabled ? box.width : 0 } });
     };
 
+    // SVG is hidden by CSS until GSAP has applied the start state, otherwise the SSR'd/unmeasured
+    // text (fully filled, fallback viewBox) flashes before the draw animation begins.
+    const reveal = () => root.querySelector<SVGSVGElement>(".stroke-text__svg")?.style.setProperty("visibility", "visible");
+
     const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) {
       setEnd();
+      reveal();
       return () => {
         gsap.killTweensOf(targets);
       };
@@ -213,6 +218,7 @@ export default function StrokeText({
         timeline.play(0);
       }
     }
+    reveal();
 
     return () => {
       removeHover?.();
