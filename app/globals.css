@@ -117,3 +117,12 @@ body {
     backdrop-filter: blur(0px);
   }
 }
+
+/* Over the hero dock: hide the target cursor and show a normal pointer (body has cursor:none). */
+.native-cursor *,
+.native-cursor {
+  cursor: pointer;
+}
+body:has(.native-cursor:hover) .target-cursor-wrapper {
+  opacity: 0;
+}

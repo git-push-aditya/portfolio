@@ -19,20 +19,15 @@ export default function About() {
       </div>
 
       <div data-mascot className="pointer-events-none absolute -bottom-[10svh] portrait:-bottom-[20svh] left-1/2 w-[min(92svh,160vw)] -translate-x-1/2">
-        <WatchingMascot
-          frameCount={91}
-          symmetric
-          neutralSrc="/mascot/neutral.webp"
-          head={[0.5, 0.3]}
-          className="aspect-square w-full"
-        />
+        <WatchingMascot head={[0.5, 0.3]} className="aspect-square w-full" />
       </div>
 
       {/* Name + location, bottom-left beside the body. Landscape: the name is sized to the gap left of the
           jacket (box left edge 50vw-46svh, jacket starts ~11svh further in). Portrait: the body fills the
           width, so the block moves to the empty space above the head, below the theme toggle. */}
       <div className="absolute inset-x-0 top-0 pt-40 landscape:top-auto landscape:bottom-0 landscape:pt-0">
-        <p className="mb-3 pl-8 pr-6 font-mono text-xs font-semibold tracking-widest text-foreground/80">{profile.role}</p>
+        <div className="w-fit">
+        <p className="mb-3 px-6 text-right font-mono text-xs font-semibold tracking-widest text-foreground/80">{profile.role}</p>
         {/* --fs is the font size the plain h1 used. StrokeText sizes its SVG from its fontSize prop in unlayered CSS,
             so the height override needs ! to win. The negative margins trim the SVG padding: tighter lines and smaller
             gaps to the role line above and the location below. */}
@@ -46,13 +41,14 @@ export default function About() {
                 fontSize={96}
                 fontWeight={900}
                 letterSpacing={-2.4}
-                drawDuration={0.6}
-                fillDelay={0.05}
-                stagger={0.03}
+                drawDuration={1.4}
+                fillDelay={0.3}
+                stagger={0.08}
               />
             </span>
           ))}
         </h1>
+        </div>
         {/* LocationWidget positions itself absolute bottom-6 across the full width; this strip is its anchor.
             Its opacity-50 leaves muted text too faint on white, so light mode shows it at full opacity. */}
         <div className="relative h-12 [[data-theme=light]_&>div]:opacity-100">
@@ -61,7 +57,7 @@ export default function About() {
       </div>
 
       {/* Resume / Email / profile links as a dock, top centre */}
-      <div className="pointer-events-none absolute inset-x-0 top-20 z-50 flex justify-center sm:top-6 [&>*]:pointer-events-auto">
+      <div className="pointer-events-none absolute inset-x-0 top-20 z-50 flex justify-center sm:top-6 [&>*]:pointer-events-auto native-cursor">
         <HeroDock />
       </div>
 

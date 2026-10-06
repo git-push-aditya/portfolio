@@ -3,69 +3,52 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Cursor-tracking character drawn from a transparent image sequence
- * (public/mascot/f_000.webp ...), built by scripts/build_mascot_frames.py.
+ * Cursor-tracking character drawn from a head-pose grid of transparent images
+ * (public/mascot/r{row}_c{col}.webp), built by scripts/build_mascot_grid.py.
  *
- * mode "angle":      frames are one full gaze circle; the cursor's angle around
- *                    the head picks the frame, so the character looks at the
- *                    cursor in 2D.
- * mode "horizontal": frames are one left-to-right sweep; cursor X picks the frame.
+ * Rows are head tilt, top row looking up. Columns are head turn toward
+ * screen-left, c00 facing the camera. The right half of the screen uses the
+ * same columns mirrored. Cursor X relative to the head picks the column,
+ * cursor Y picks the row, so moving across the face passes through the
+ * facing-camera pose instead of swinging around it.
  *
- * symmetric (angle mode): frames cover only the left half of the circle,
- * down (90) -> left (180) -> up (270), first and last inclusive; the right
- * half is drawn as their mirror image.
- *
- * Canvas + pre-decoded images instead of <video>.currentTime: seeking is
- * instant on every browser, and WebP alpha lets the character sit on either
- * theme without a matching background baked into the clip.
+ * Canvas + pre-decoded images: drawing a frame is a copy, no video seeking,
+ * and WebP alpha works on both themes.
  */
 type Props = {
-  frameCount: number;
+  rows?: number;
+  cols?: number;
   dir?: string;
-  mode?: "angle" | "horizontal";
-  /** Image shown when the cursor is on the face (angle mode). */
-  neutralSrc?: string;
-  /** Gaze direction of frame 0, degrees on screen: 0 = right, 90 = down. */
-  startAngleDeg?: number;
-  /** True if the clip turns right -> down -> left -> up. */
-  clockwise?: boolean;
-  /** Frames span down -> left -> up only; mirror them for the right half. */
-  symmetric?: boolean;
   /** Head centre as fractions of the component box. */
   head?: [number, number];
-  /** Radius in px around the head inside which the neutral image fades in. */
-  deadZone?: number;
+  /** Cursor distance (fraction of viewport width/height) that gives the full turn/tilt. */
+  reach?: [number, number];
   /** 0..1 per 60fps frame; higher is snappier. */
   smoothing?: number;
   className?: string;
   label?: string;
 };
 
-const TAU = Math.PI * 2;
-/** Crossfade length when the mirrored half switches over (straight up / down). */
-const FLIP_FADE_MS = 110;
-/** Neutral fade speed per 60fps frame; faster than the head so the two faces overlap briefly. */
-const NEUTRAL_SMOOTHING = 0.38;
-/** The neutral pose turns off only once the cursor is this much beyond deadZone. */
-const NEUTRAL_EXIT = 1.3;
-const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+/** Crossfade when the row changes or the left/right mirror switches. */
+const SWITCH_FADE_MS = 120;
+/** Row hysteresis, in normalised tilt units, so a cursor on a boundary can't flicker. */
+const ROW_HYSTERESIS = 0.08;
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 export default function WatchingMascot({
-  frameCount,
+  rows = 3,
+  cols = 20,
   dir = "/mascot",
-  mode = "angle",
-  neutralSrc,
-  startAngleDeg = 0,
-  clockwise = true,
-  symmetric = false,
-  head = [0.5, 0.4],
-  deadZone = 90,
+  head = [0.5, 0.3],
+  reach = [0.4, 0.4],
   smoothing = 0.16,
   className,
   label = "Animated character that looks at your cursor",
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [headX, headY] = head;
+  const [reachX, reachY] = reach;
 
   useEffect(() => {
     const canvasEl = canvasRef.current;
@@ -74,28 +57,28 @@ export default function WatchingMascot({
     const canvas: HTMLCanvasElement = canvasEl;
     const ctx: CanvasRenderingContext2D = ctxEl;
 
-    const frames: (HTMLImageElement | null)[] = new Array(frameCount).fill(null);
-    let neutral: HTMLImageElement | null = null;
+    const midRow = Math.floor(rows / 2);
+    const images: (HTMLImageElement | null)[][] = Array.from({ length: rows }, () =>
+      new Array<HTMLImageElement | null>(cols).fill(null),
+    );
     let disposed = false;
 
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const finePointer = matchMedia("(pointer: fine)").matches;
-    const angleMode = mode === "angle";
 
     let pointer: { x: number; y: number } | null = null;
-    let cur = 0;
-    let target = 0;
-    let nCur = neutralSrc ? 1 : 0; // start facing the visitor until the mouse moves
-    let nTarget = nCur;
-    let lastKey = "";
-    let shownIdx = -1;
-    let shownFlip = false;
+    // Signed, -1..1: yaw < 0 means the cursor is left of the head, pitch < 0 above it.
+    let yaw = 0;
+    let pitch = 0;
+    let row = midRow;
+    let shown: { img: HTMLImageElement; flip: boolean; row: number; col: number } | null = null;
     let fade: { img: HTMLImageElement; flip: boolean; start: number } | null = null;
+    let lastKey = "";
     let raf = 0;
     let prev = performance.now();
     let visible = false;
 
-    const frameUrl = (i: number) => `${dir}/f_${String(i).padStart(3, "0")}.webp`;
+    const url = (r: number, c: number) => `${dir}/r${r}_c${String(c).padStart(2, "0")}.webp`;
 
     const load = (src: string) =>
       new Promise<HTMLImageElement>((resolve, reject) => {
@@ -110,10 +93,10 @@ export default function WatchingMascot({
       canvas.width = Math.max(1, Math.round(r.width * dpr));
       canvas.height = Math.max(1, Math.round(r.height * dpr));
       lastKey = "";
-      draw();
+      draw(performance.now());
     };
 
-    const drawImage = (img: HTMLImageElement, alpha: number, flip = false) => {
+    const drawImage = (img: HTMLImageElement, alpha: number, flip: boolean) => {
       const s = Math.min(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
       const w = img.naturalWidth * s;
       const h = img.naturalHeight * s;
@@ -127,51 +110,42 @@ export default function WatchingMascot({
       ctx.restore();
     };
 
-    // Which image to draw for the current position, and whether to mirror it.
-    const pick = (): [number, boolean] => {
-      if (!angleMode) return [Math.round(cur * (frameCount - 1)), false];
-      if (!symmetric) return [Math.round(cur * frameCount) % frameCount, false];
-      const deg = cur * 360;
-      const flip = deg < 90 || deg > 270;
-      const m = flip ? (540 - deg) % 360 : deg; // reflect across the vertical axis
-      return [Math.round(((m - 90) / 180) * (frameCount - 1)), flip];
-    };
-
-    // Nearest decoded frame, so the first paint does not wait for the full set.
-    const nearestFrame = (i: number) => {
-      for (let d = 0; d < frameCount; d++) {
-        const a = frames[(i + d) % frameCount];
-        if (a) return a;
-        const b = frames[(i - d + frameCount) % frameCount];
-        if (b) return b;
+    // Nearest loaded image in the same row, then the middle row, so the first
+    // paint doesn't wait for the whole grid.
+    const nearest = (r: number, c: number) => {
+      for (const rr of [r, midRow]) {
+        for (let d = 0; d < cols; d++) {
+          const a = images[rr][c - d];
+          if (a) return a;
+          const b = images[rr][c + d];
+          if (b) return b;
+        }
       }
       return null;
     };
 
-    function draw() {
-      const [idx, flip] = pick();
-      const now = performance.now();
+    function draw(now: number) {
+      const col = Math.round(Math.abs(yaw) * (cols - 1));
+      const flip = yaw > 0; // cursor right of the head: mirror the left-turn frames
+      const img = nearest(row, col);
+      if (!img) return;
 
-      // Mirror switch: briefly fade the outgoing image instead of popping.
-      if (shownIdx >= 0 && flip !== shownFlip) {
-        const prev = nearestFrame(shownIdx);
-        if (prev) fade = { img: prev, flip: shownFlip, start: now };
+      if (shown && (shown.flip !== flip || shown.row !== row)) {
+        fade = { img: shown.img, flip: shown.flip, start: now };
       }
-      shownIdx = idx;
-      shownFlip = flip;
-      const fp = fade ? (now - fade.start) / FLIP_FADE_MS : 1;
+      shown = { img, flip, row, col };
+
+      const fp = fade ? (now - fade.start) / SWITCH_FADE_MS : 1;
       if (fp >= 1) fade = null;
 
-      const n = neutral ? Math.round(nCur * 24) / 24 : 0;
-      const key = `${idx}:${flip}:${n}:${fade ? Math.round(fp * 8) : "-"}`;
+      const key = `${row}:${col}:${flip}:${fade ? Math.round(fp * 10) : "-"}`;
       if (key === lastKey) return;
       lastKey = key;
+      canvas.dataset.pose = `${row},${flip ? -col : col}`;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const frame = nearestFrame(idx);
-      if (frame && n < 1) drawImage(frame, 1, flip);
-      if (fade && n < 1) drawImage(fade.img, 1 - fp, fade.flip);
-      if (neutral && n > 0) drawImage(neutral, n);
+      drawImage(img, 1, flip);
+      if (fade) drawImage(fade.img, 1 - fp, fade.flip);
       ctx.globalAlpha = 1;
     }
 
@@ -180,38 +154,30 @@ export default function WatchingMascot({
       prev = now;
       const k = 1 - Math.pow(1 - smoothing, dt * 60);
 
+      let ty = 0;
+      let tp = 0;
       if (pointer) {
         const r = canvas.getBoundingClientRect();
-        if (angleMode) {
-          const dx = pointer.x - (r.left + r.width * headX);
-          const dy = pointer.y - (r.top + r.height * headY);
-          let t = (Math.atan2(dy, dx) - (startAngleDeg * Math.PI) / 180) / TAU;
-          t = ((t % 1) + 1) % 1;
-          target = clockwise ? t : (1 - t) % 1;
-          const dist = Math.hypot(dx, dy);
-          if (!neutral) nTarget = 0;
-          else if (dist < deadZone) nTarget = 1;
-          else if (dist > deadZone * NEUTRAL_EXIT) nTarget = 0;
-        } else {
-          target = clamp01(pointer.x / window.innerWidth);
-        }
+        const dx = pointer.x - (r.left + r.width * headX);
+        const dy = pointer.y - (r.top + r.height * headY);
+        ty = clamp(dx / (window.innerWidth * reachX), -1, 1);
+        tp = clamp(dy / (window.innerHeight * reachY), -1, 1);
       } else if (!finePointer) {
-        // Touch: no cursor to follow, so drift slowly instead of freezing.
-        nTarget = 0;
-        target = angleMode ? (target + dt / 14) % 1 : 0.5 + 0.5 * Math.sin(now / 2600);
+        // Touch: no cursor to follow, so look slowly from side to side.
+        ty = 0.6 * Math.sin(now / 2600);
       }
 
-      if (angleMode) {
-        let d = target - cur;
-        d -= Math.round(d); // shortest way round, never sweep through the whole clip
-        cur = (((cur + d * k) % 1) + 1) % 1;
-      } else {
-        cur += (target - cur) * k;
-      }
-      const kn = 1 - Math.pow(1 - NEUTRAL_SMOOTHING, dt * 60);
-      nCur += (nTarget - nCur) * kn;
+      yaw += (ty - yaw) * k;
+      pitch += (tp - pitch) * k;
 
-      draw();
+      // Row from tilt: equal bands, with hysteresis around each boundary.
+      const band = 2 / rows;
+      const centreOf = (r: number) => -1 + band * (r + 0.5);
+      if (Math.abs(pitch - centreOf(row)) > band / 2 + ROW_HYSTERESIS) {
+        row = clamp(Math.floor((pitch + 1) / band), 0, rows - 1);
+      }
+
+      draw(now);
       raf = requestAnimationFrame(tick);
     }
 
@@ -232,38 +198,39 @@ export default function WatchingMascot({
 
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
-
     const io = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
       if (visible) start();
       else stop();
     });
     io.observe(canvas);
-
     window.addEventListener("pointermove", onPointerMove, { passive: true });
 
     (async () => {
-      // First paint: the neutral pose (or frame 0), then fill in the rest.
-      const first = await Promise.allSettled([
-        neutralSrc ? load(neutralSrc) : Promise.reject(),
-        load(frameUrl(0)),
-      ]);
+      // First paint: facing the camera.
+      try {
+        images[midRow][0] = await load(url(midRow, 0));
+      } catch {
+        return;
+      }
       if (disposed) return;
-      if (first[0].status === "fulfilled") neutral = first[0].value;
-      if (first[1].status === "fulfilled") frames[0] = first[1].value;
       lastKey = "";
-      draw();
+      draw(performance.now());
       if (reducedMotion) return;
 
-      // Six at a time keeps the hero's own requests from queueing behind ~100 images.
-      let next = 1;
+      // Then the rest, nearest-to-centre first, six at a time.
+      const queue: [number, number][] = [];
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) queue.push([r, c]);
+      queue.sort((a, b) => Math.abs(a[0] - midRow) + a[1] / cols - (Math.abs(b[0] - midRow) + b[1] / cols));
+      let next = 0;
       const worker = async () => {
-        while (next < frameCount && !disposed) {
-          const i = next++;
+        while (next < queue.length && !disposed) {
+          const [r, c] = queue[next++];
+          if (images[r][c]) continue;
           try {
-            frames[i] = await load(frameUrl(i));
+            images[r][c] = await load(url(r, c));
           } catch {
-            /* a missing frame falls back to its nearest neighbour */
+            /* a missing image falls back to its nearest loaded neighbour */
           }
         }
       };
@@ -278,7 +245,7 @@ export default function WatchingMascot({
       io.disconnect();
       window.removeEventListener("pointermove", onPointerMove);
     };
-  }, [frameCount, dir, mode, neutralSrc, startAngleDeg, clockwise, symmetric, headX, headY, deadZone, smoothing]);
+  }, [rows, cols, dir, headX, headY, reachX, reachY, smoothing]);
 
   return <canvas ref={canvasRef} role="img" aria-label={label} className={className} />;
 }

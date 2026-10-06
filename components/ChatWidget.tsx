@@ -155,8 +155,8 @@ export default function ChatWidget() {
         <SpecularButton
           size="sm"
           radius={57}
-          tint="#ffffff"
-          tintOpacity={0}
+          tint={light ? "#ffffff" : "#0a0a0b"}
+          tintOpacity={1}
           blur={0}
           textColor={light ? "#18181b" : "#f5f5f5"}
           lineColor={light ? "#16a34a" : "#4ade80"}
@@ -164,8 +164,8 @@ export default function ChatWidget() {
           intensity={1}
           shineSize={10}
           shineFade={35}
-          thickness={1}
-          speed={1.6}
+          thickness={2}
+          speed={0.8}
           followMouse={false}
           proximity={200}
           autoAnimate
